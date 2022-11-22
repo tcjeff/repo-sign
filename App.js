@@ -7,7 +7,6 @@
  */
 
 import React, {useCallback} from 'react';
-import type {Node} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -16,7 +15,7 @@ import {
   Text,
   useColorScheme,
   View,
-  Button
+  Button,
 } from 'react-native';
 
 import {
@@ -30,19 +29,46 @@ import {useWalletConnect} from '@walletconnect/react-native-dapp';
 import Providers from './src/providers';
 
 const ConnectButton = () => {
-  const connector = useWalletConnect()
- return (
-    <View>
-      <Button title="Connect" onPress={useCallback(() => {
-        return connector.connect()
-      }, [connector])} />
+  const connector = useWalletConnect();
+  const handleConnect = useCallback(async () => {
+    try {
+      const conn = await connector.connect();
+      console.log('conn: ', conn);
+    } catch (error) {
+      console.log('error dapp conn: ', error);
+    }
+  }, [connector]);
+
+  const handleDisconnect = useCallback(async () => {
+    try {
+      const killSe = await connector.killSession();
+      console.log('killSe: ', killSe);
+    } catch (error) {
+      console.log('error dapp killSe: ', error);
+    }
+  }, [connector]);
+
+  return (
+    <View
+      style={{
+        alignItems: 'flex-start',
+      }}>
+      {!connector.connected ? (
+        <Button title="Connect" onPress={handleConnect} />
+      ) : (
+        <Button title="Connected" onPress={handleDisconnect} />
+      )}
+      <View style={{marginVertical: 10}}>
+        {!!connector.accounts && <Text>{connector.accounts[0]}</Text>}
+        {!!connector.rpcUrl && <Text>{connector.rpcUrl}</Text>}
+      </View>
     </View>
-    )
-}
+  );
+};
 
 /* $FlowFixMe[missing-local-annot] The type annotation(s) required by Flow's
  * LTI update could not be added via codemod */
-const Section = ({children, title}): Node => {
+const Section = ({children, title}) => {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <View style={styles.sectionContainer}>
@@ -68,7 +94,7 @@ const Section = ({children, title}): Node => {
   );
 };
 
-const App: () => Node = () => {
+const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
@@ -85,7 +111,16 @@ const App: () => Node = () => {
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           style={backgroundStyle}>
-          <Header />
+          <View
+            style={{
+              minHeight: 200,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Text style={{fontSize: 26, fontWeight: '700'}}>
+              Wallet connect v.1
+            </Text>
+          </View>
           <View
             style={{
               backgroundColor: isDarkMode ? Colors.black : Colors.white,
